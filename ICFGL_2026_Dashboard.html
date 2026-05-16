@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ICFGL 2026 — Abstract Submissions Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,600&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --pink-bg:    #fce8ef;
+  --pink-mid:   #f4c8da;
+  --hot-pink:   #e8187a;
+  --hot-pink-h: #c9136a;
+  --navy:       #1a2d5a;
+  --navy-mid:   #243870;
+  --white:      #ffffff;
+  --text:       #2c2c2c;
+  --text-mid:   #555;
+  --text-muted: #888;
+  --border-p:   rgba(232,24,122,0.18);
+  --border-n:   rgba(26,45,90,0.12);
+  --sh-sm: 0 2px 12px rgba(26,45,90,0.07);
+  --sh-md: 0 6px 30px rgba(26,45,90,0.11);
+  --r-sm: 6px; --r-md: 10px; --r-lg: 14px;
+}
+html { scroll-behavior: smooth; }
+body { font-family: 'Source Sans 3', sans-serif; background: var(--pink-bg); color: var(--text); min-height: 100vh; }
+
+/* HEADER */
+.site-header { background: var(--white); border-bottom: 2px solid var(--pink-mid); position: sticky; top: 0; z-index: 100; box-shadow: var(--sh-sm); }
+.header-inner { max-width: 1200px; margin: 0 auto; padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 64px; }
+.logo { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+.logo-icon { width: 38px; height: 38px; background: var(--hot-pink); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.logo-icon svg { width: 20px; height: 20px; }
+.logo-text { display: flex; flex-direction: column; line-height: 1.25; }
+.logo-main { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 600; color: var(--navy); }
+.logo-sub  { font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--hot-pink); }
+nav { display: flex; gap: 2rem; }
+nav a { font-size: 12px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; text-decoration: none; color: var(--text-muted); transition: color .2s; }
+nav a:hover { color: var(--hot-pink); }
+nav a.on { color: var(--hot-pink); border-bottom: 2px solid var(--hot-pink); padding-bottom: 2px; }
+
+/* HERO */
+.hero { background: var(--white); padding: 4rem 2rem 3rem; position: relative; overflow: hidden; border-bottom: 1px solid var(--pink-mid); }
+.hero::after { content:''; position:absolute; bottom:0; left:0; right:0; height:3px; background: linear-gradient(90deg, var(--hot-pink), var(--navy)); }
+.hero-in { max-width: 1200px; margin: 0 auto; }
+.eyebrow { display: inline-flex; align-items: center; gap: 8px; background: var(--pink-bg); border: 1px solid var(--border-p); border-radius: 100px; padding: 4px 14px; margin-bottom: 1.2rem; }
+.eyebrow .dot { width: 7px; height: 7px; background: var(--hot-pink); border-radius: 50%; }
+.eyebrow span { font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--hot-pink); }
+.hero h1 { font-family: 'Cormorant Garamond', serif; font-size: clamp(2rem,5vw,3.5rem); font-weight: 600; line-height: 1.15; color: var(--navy); margin-bottom: .75rem; }
+.hero h1 em { color: var(--hot-pink); font-style: italic; }
+.hero p { font-size: 15px; font-weight: 300; color: var(--text-mid); max-width: 540px; line-height: 1.7; margin-bottom: 2.25rem; }
+.kpi-row { display: flex; gap: 1px; max-width: 560px; }
+.kpi { flex: 1; background: var(--pink-bg); border: 1px solid var(--border-p); padding: 1.1rem 1rem; text-align: center; transition: background .2s, box-shadow .2s; cursor: default; }
+.kpi:first-child { border-radius: var(--r-md) 0 0 var(--r-md); }
+.kpi:last-child  { border-radius: 0 var(--r-md) var(--r-md) 0; }
+.kpi:hover { background: var(--white); box-shadow: var(--sh-sm); }
+.kpi-n { font-family: 'Cormorant Garamond', serif; font-size: 2.7rem; font-weight: 600; color: var(--hot-pink); line-height: 1; display: block; }
+.kpi-l { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--navy); margin-top: 4px; display: block; }
+
+/* MAIN */
+.wrap { max-width: 1200px; margin: 0 auto; padding: 2.5rem 2rem 5rem; }
+
+/* FILTER */
+.fbar { background: var(--white); border: 1px solid var(--border-n); border-left: 3px solid var(--hot-pink); border-radius: var(--r-md); padding: 1rem 1.25rem; margin-bottom: 2.25rem; display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; box-shadow: var(--sh-sm); }
+.ftag { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--hot-pink); background: var(--pink-bg); border: 1px solid var(--border-p); border-radius: 4px; padding: 3px 9px; }
+.fg { display: flex; align-items: center; gap: 8px; }
+.fg label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+.fg select { font-family: 'Source Sans 3', sans-serif; font-size: 13px; color: var(--navy); background: var(--pink-bg); border: 1px solid var(--border-p); border-radius: var(--r-sm); padding: 6px 11px; cursor: pointer; outline: none; transition: border-color .2s; }
+.fg select:focus { border-color: var(--hot-pink); }
+.btn-r { font-family: 'Source Sans 3', sans-serif; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--navy); background: transparent; border: 1px solid var(--border-n); border-radius: var(--r-sm); padding: 6px 14px; cursor: pointer; transition: all .2s; margin-left: auto; }
+.btn-r:hover { background: var(--navy); color: var(--white); }
+
+/* SECTION */
+.sec { margin-bottom: 2.25rem; }
+.sec-hd { display: flex; align-items: center; gap: 12px; margin-bottom: 1rem; }
+.sec-n { font-size: 11px; font-weight: 700; letter-spacing: 2px; color: var(--white); background: var(--hot-pink); border-radius: 4px; padding: 2px 8px; }
+.sec-hd h2 { font-family: 'Cormorant Garamond', serif; font-size: 1.45rem; font-weight: 600; color: var(--navy); }
+.sec-line { flex: 1; height: 1px; background: var(--pink-mid); }
+
+/* CARD */
+.card { background: var(--white); border: 1px solid var(--border-n); border-top: 2px solid var(--hot-pink); border-radius: var(--r-lg); padding: 1.5rem; box-shadow: var(--sh-sm); transition: box-shadow .3s; }
+.card:hover { box-shadow: var(--sh-md); }
+.card-lbl { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; }
+.card-lbl::after { content:''; flex:1; height:1px; background: var(--pink-mid); }
+
+/* GRID */
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+
+/* LEGEND */
+.lgd { display: flex; flex-wrap: wrap; gap: 5px 14px; margin-bottom: 1rem; }
+.li { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-mid); cursor: default; transition: opacity .2s; }
+.li:hover { opacity: .7; }
+.ld { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+.lp { font-weight: 700; color: var(--navy); }
+
+/* FOOTER */
+footer { background: var(--navy); padding: 2rem; text-align: center; border-top: 3px solid var(--hot-pink); }
+footer p { font-size: 13px; color: rgba(255,255,255,.4); font-weight: 300; }
+footer a { color: var(--hot-pink); text-decoration: none; }
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--pink-bg); }
+::-webkit-scrollbar-thumb { background: var(--pink-mid); border-radius: 3px; }
+
+@media (max-width: 768px) {
+  .g2 { grid-template-columns: 1fr; }
+  nav { display: none; }
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="https://icfgl.uel.edu.vn/index.html" target="_blank" class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 12l10 5 10-5"/><path d="M2 17l10 5 10-5"/>
+        </svg>
+      </div>
+      <div class="logo-text">
+        <span class="logo-main">ICFGL 2026</span>
+        <span class="logo-sub">Feminist Legal Theory · UEL</span>
+      </div>
+    </a>
+    <nav>
+      <a href="https://icfgl.uel.edu.vn/index.html" target="_blank">Home</a>
+      <a href="https://icfgl.uel.edu.vn/works/icfgl/icfgl-2026/icfgl-2026.html" target="_blank">Conference</a>
+      <a href="#" class="on">Dashboard</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="hero-in">
+    <div class="eyebrow"><span class="dot"></span><span>Abstract Submissions — Analytics</span></div>
+    <h1>ICFGL 2026 <em>Dashboard</em></h1>
+    <p>Interactive overview of abstract submissions received for the International Conference on Feminism, Gender and Law 2026 — hosted by University of Economics and Law (UEL), Vietnam.</p>
+    <div class="kpi-row">
+      <div class="kpi"><span class="kpi-n" id="kn1">426</span><span class="kpi-l">Abstracts</span></div>
+      <div class="kpi"><span class="kpi-n" id="kn2">69</span><span class="kpi-l">Nations</span></div>
+      <div class="kpi"><span class="kpi-n" id="kn3">15</span><span class="kpi-l">Regions</span></div>
+      <div class="kpi"><span class="kpi-n">8</span><span class="kpi-l">Themes</span></div>
+    </div>
+  </div>
+</section>
+
+<main class="wrap">
+  <div class="fbar">
+    <span class="ftag">Filter</span>
+    <div class="fg">
+      <label>Region</label>
+      <select id="fr" onchange="go()">
+        <option value="All">All Regions</option>
+        <option>Southeast Asia</option><option>South Asia</option><option>Africa</option>
+        <option>Europe</option><option>Middle East</option><option>East Asia</option>
+        <option>South America</option><option>North America</option><option>Oceania</option>
+        <option>Central Asia</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>Category</label>
+      <select id="fc" onchange="go()">
+        <option value="All">All Categories</option>
+        <option>Lecturer / Academic Scholar</option><option>PhD Candidate</option>
+        <option>Undergraduate student</option><option>Professional / Specialist</option>
+        <option>Postgraduate student</option><option>Independent Researcher</option>
+        <option>NGO/Organization Leader</option>
+      </select>
+    </div>
+    <button class="btn-r" onclick="reset()">↺ Reset</button>
+  </div>
+
+  <div class="sec">
+    <div class="sec-hd"><span class="sec-n">01</span><h2>Top 10 Nations by Submissions</h2><div class="sec-line"></div></div>
+    <div class="card">
+      <div class="card-lbl">Ranked by abstract count — hover bars for details</div>
+      <div style="position:relative;width:100%;height:380px;"><canvas id="cN" role="img" aria-label="Top 10 nations bar chart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-hd"><span class="sec-n">02</span><h2>Submissions by Geographic Region</h2><div class="sec-line"></div></div>
+    <div class="card">
+      <div class="card-lbl">All regions — hover for exact count and share</div>
+      <div style="position:relative;width:100%;height:300px;"><canvas id="cR" role="img" aria-label="Regions bar chart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-hd"><span class="sec-n">03 — 04</span><h2>Category & Theme Breakdown</h2><div class="sec-line"></div></div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-lbl">Submitters by professional category</div>
+        <div id="lC" class="lgd"></div>
+        <div style="position:relative;width:100%;height:280px;"><canvas id="cC" role="img" aria-label="Category donut chart"></canvas></div>
+      </div>
+      <div class="card">
+        <div class="card-lbl">Abstracts by conference theme</div>
+        <div id="lT" class="lgd"></div>
+        <div style="position:relative;width:100%;height:280px;"><canvas id="cT" role="img" aria-label="Theme donut chart"></canvas></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <p>ICFGL 2026 · Feminist Legal Theory Project · University of Economics and Law (UEL) · <a href="https://icfgl.uel.edu.vn" target="_blank">icfgl.uel.edu.vn</a></p>
+  <p style="margin-top:6px;font-size:11px;">Abstract submissions data visualization · 2026</p>
+</footer>
+
+<script>
+Chart.defaults.font.family = "'Source Sans 3', sans-serif";
+Chart.defaults.color = '#555';
+
+const D = {
+  nations:{"Vietnam":104,"India":103,"Philippines":18,"United Kingdom":13,"Indonesia":13,"Bangladesh":11,"Australia":10,"Thailand":9,"China":9,"Pakistan":9,"United States":8,"Nigeria":8,"Switzerland":7,"Uganda":6,"South Africa":6,"Kenya":5,"Ghana":4,"Nepal":4,"Malaysia":4,"Sri Lanka":4,"Myanmar":3,"Cameroon":3,"New Zealand":3,"Japan":3,"South Korea":3,"Germany":3,"France":3,"Italy":3,"Brazil":3,"Colombia":2,"Mexico":2,"Ethiopia":2,"Tanzania":2,"Rwanda":2,"Canada":2,"Netherlands":2,"Belgium":2,"Poland":2,"Sweden":1,"Norway":1,"Finland":1,"Denmark":1,"Austria":1,"Spain":1,"Portugal":1,"Greece":1,"Turkey":1,"Egypt":1,"Morocco":1,"Algeria":1,"Tunisia":1,"Jordan":1,"Lebanon":1,"Iran":1,"Kazakhstan":1,"Uzbekistan":1,"Kyrgyzstan":1,"Cambodia":1,"Laos":1,"Timor-Leste":1,"Fiji":1,"Papua New Guinea":1,"Argentina":1,"Chile":1,"Peru":1,"Bolivia":1,"Ecuador":1,"Venezuela":1,"Paraguay":1},
+  regions:{"Southeast Asia":151,"South Asia":139,"Africa":43,"Europe":33,"Middle East":14,"East Asia":13,"South America":12,"North America":6,"Oceania":6,"Central Asia":3},
+  cats:{"Lecturer / Academic Scholar":177,"PhD Candidate":68,"Undergraduate student":55,"Professional / Specialist":46,"Postgraduate student":42,"Independent Researcher":20,"NGO/Organization Leader":18},
+  themes:{"Theme 1":32,"Theme 2":83,"Theme 3":117,"Theme 4":74,"Theme 5":71,"Theme 6":25,"Theme 7":15,"Theme 8":9},
+  reg:{
+    "Southeast Asia":{n:{"Vietnam":104,"Philippines":18,"Indonesia":13,"Thailand":9,"Malaysia":4,"Myanmar":3,"Cambodia":1,"Laos":1,"Timor-Leste":1},c:{"Lecturer / Academic Scholar":65,"PhD Candidate":25,"Undergraduate student":28,"Professional / Specialist":15,"Postgraduate student":13,"Independent Researcher":3,"NGO/Organization Leader":2},t:{"Theme 1":12,"Theme 2":31,"Theme 3":42,"Theme 4":28,"Theme 5":22,"Theme 6":9,"Theme 7":5,"Theme 8":2}},
+    "South Asia":{n:{"India":103,"Bangladesh":11,"Pakistan":9,"Nepal":4,"Sri Lanka":4},c:{"Lecturer / Academic Scholar":56,"PhD Candidate":22,"Undergraduate student":18,"Professional / Specialist":15,"Postgraduate student":16,"Independent Researcher":7,"NGO/Organization Leader":5},t:{"Theme 1":10,"Theme 2":27,"Theme 3":38,"Theme 4":24,"Theme 5":22,"Theme 6":8,"Theme 7":5,"Theme 8":5}},
+    "Africa":{n:{"Nigeria":8,"Uganda":6,"South Africa":6,"Kenya":5,"Ghana":4,"Cameroon":3,"Ethiopia":2,"Tanzania":2,"Rwanda":2,"Egypt":1,"Morocco":1,"Algeria":1,"Tunisia":1},c:{"Lecturer / Academic Scholar":15,"PhD Candidate":8,"Undergraduate student":4,"Professional / Specialist":8,"Postgraduate student":5,"Independent Researcher":2,"NGO/Organization Leader":1},t:{"Theme 1":5,"Theme 2":10,"Theme 3":13,"Theme 4":8,"Theme 5":5,"Theme 6":1,"Theme 7":1,"Theme 8":0}},
+    "Europe":{n:{"United Kingdom":13,"Switzerland":7,"Germany":3,"France":3,"Italy":3,"Netherlands":2,"Belgium":2,"Poland":2,"Sweden":1,"Norway":1,"Finland":1,"Denmark":1,"Austria":1,"Spain":1,"Portugal":1,"Greece":1},c:{"Lecturer / Academic Scholar":15,"PhD Candidate":6,"Undergraduate student":3,"Professional / Specialist":4,"Postgraduate student":4,"Independent Researcher":3,"NGO/Organization Leader":2},t:{"Theme 1":3,"Theme 2":7,"Theme 3":9,"Theme 4":6,"Theme 5":5,"Theme 6":2,"Theme 7":1,"Theme 8":0}},
+    "Middle East":{n:{"Turkey":1,"Jordan":1,"Lebanon":1,"Iran":1},c:{"Lecturer / Academic Scholar":5,"PhD Candidate":2,"Undergraduate student":2,"Professional / Specialist":2,"Postgraduate student":2,"Independent Researcher":1,"NGO/Organization Leader":0},t:{"Theme 1":2,"Theme 2":3,"Theme 3":4,"Theme 4":2,"Theme 5":2,"Theme 6":1,"Theme 7":0,"Theme 8":0}},
+    "East Asia":{n:{"China":9,"Japan":3,"South Korea":3},c:{"Lecturer / Academic Scholar":5,"PhD Candidate":2,"Undergraduate student":1,"Professional / Specialist":2,"Postgraduate student":2,"Independent Researcher":1,"NGO/Organization Leader":0},t:{"Theme 1":1,"Theme 2":2,"Theme 3":4,"Theme 4":2,"Theme 5":2,"Theme 6":1,"Theme 7":1,"Theme 8":0}},
+    "South America":{n:{"Brazil":3,"Colombia":2,"Mexico":2,"Argentina":1,"Chile":1,"Peru":1,"Bolivia":1,"Ecuador":1},c:{"Lecturer / Academic Scholar":4,"PhD Candidate":2,"Undergraduate student":1,"Professional / Specialist":2,"Postgraduate student":2,"Independent Researcher":1,"NGO/Organization Leader":0},t:{"Theme 1":1,"Theme 2":2,"Theme 3":3,"Theme 4":2,"Theme 5":2,"Theme 6":1,"Theme 7":1,"Theme 8":0}},
+    "North America":{n:{"United States":8,"Canada":2},c:{"Lecturer / Academic Scholar":4,"PhD Candidate":1,"Undergraduate student":1,"Professional / Specialist":1,"Postgraduate student":0,"Independent Researcher":0,"NGO/Organization Leader":1},t:{"Theme 1":1,"Theme 2":2,"Theme 3":2,"Theme 4":1,"Theme 5":1,"Theme 6":0,"Theme 7":0,"Theme 8":0}},
+    "Oceania":{n:{"Australia":10,"New Zealand":3,"Fiji":1,"Papua New Guinea":1},c:{"Lecturer / Academic Scholar":4,"PhD Candidate":1,"Undergraduate student":1,"Professional / Specialist":1,"Postgraduate student":1,"Independent Researcher":1,"NGO/Organization Leader":0},t:{"Theme 1":1,"Theme 2":1,"Theme 3":3,"Theme 4":2,"Theme 5":1,"Theme 6":1,"Theme 7":0,"Theme 8":0}},
+    "Central Asia":{n:{"Kazakhstan":1,"Uzbekistan":1,"Kyrgyzstan":1},c:{"Lecturer / Academic Scholar":1,"PhD Candidate":1,"Undergraduate student":0,"Professional / Specialist":0,"Postgraduate student":1,"Independent Researcher":0,"NGO/Organization Leader":0},t:{"Theme 1":0,"Theme 2":1,"Theme 3":1,"Theme 4":1,"Theme 5":0,"Theme 6":0,"Theme 7":0,"Theme 8":0}}
+  }
+};
+
+const TF = {"Theme 1":"T1 · Feminist Legal History","Theme 2":"T2 · Public/Private Divide","Theme 3":"T3 · Sceptical Pragmatism","Theme 4":"T4 · Intersectionality","Theme 5":"T5 · Writing Feminist Laws","Theme 6":"T6 · Imagine Law Differently","Theme 7":"T7 · Gender and Law","Theme 8":"T8 · Gender Studies"};
+const TT = {"Theme 1":"Feminist Legal History and Uncovering \"Inconspicuous Impact\"","Theme 2":"Re-evaluating the Public/Private Divide: Violence, Family and Labour","Theme 3":"\"Sceptical Pragmatism\" and the Limits of Legal Mobilization","Theme 4":"Intersectionality, Inclusion, and Marginalized Voices in Law","Theme 5":"How to Actually Write Feminist Laws","Theme 6":"Imagine the Law Differently (Feminist DIY Law, Law-writing, and Judgments)","Theme 7":"Gender and Law","Theme 8":"Gender Studies in General"};
+
+// Pink-navy dual-tone palette
+const PP = ["#e8187a","#1a2d5a","#d44fa0","#2d4d8c","#f063b0","#3d6db5","#a50f5e","#0e1e3d"];
+const RP = ["#e8187a","#1a2d5a","#d44fa0","#2d4d8c","#f47fc4","#5378b8","#a50f5e","#0e1e3d","#f09ac0","#7295cc"];
+
+const TTO = {
+  backgroundColor:'#ffffff', titleColor:'#e8187a', bodyColor:'#2c2c2c',
+  borderColor:'rgba(232,24,122,0.25)', borderWidth:1, padding:12,
+  cornerRadius:8, boxPadding:5,
+  titleFont:{size:13,weight:'700'}, bodyFont:{size:12}
+};
+
+const CH = {};
+
+function mkNation(nations) {
+  const s = Object.entries(nations).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const tot = Object.values(nations).reduce((a,b)=>a+b,0);
+  const lbl = s.map(d=>d[0]), val = s.map(d=>d[1]), mx = val[0];
+  if (CH.n) CH.n.destroy();
+  CH.n = new Chart(document.getElementById('cN'), {
+    type:'bar',
+    data:{labels:lbl,datasets:[{data:val,
+      backgroundColor:val.map(v=>{const t=v/mx; return `rgb(${Math.round(232*t+26*(1-t))},${Math.round(24*t+45*(1-t))},${Math.round(122*t+90*(1-t))})` }),
+      borderRadius:5, borderSkipped:false, hoverBackgroundColor:'#e8187a'}]},
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      animation:{duration:450,easing:'easeOutQuart'},
+      plugins:{legend:{display:false},tooltip:{...TTO,callbacks:{
+        title:c=>c[0].label,
+        label:c=>`  ${c.parsed.x} abstracts  ·  ${((c.parsed.x/tot)*100).toFixed(1)}% of total`
+      }}},
+      scales:{
+        x:{grid:{color:'rgba(26,45,90,0.06)'},ticks:{font:{size:11},color:'#888'}},
+        y:{grid:{display:false},ticks:{font:{size:12,weight:'500'},color:'#1a2d5a'}}
+      }
+    }
+  });
+}
+
+function mkRegion(regions) {
+  const s = Object.entries(regions).sort((a,b)=>b[1]-a[1]);
+  const tot = s.reduce((a,[,v])=>a+v,0);
+  const lbl = s.map(d=>d[0]), val = s.map(d=>d[1]);
+  if (CH.r) CH.r.destroy();
+  CH.r = new Chart(document.getElementById('cR'), {
+    type:'bar',
+    data:{labels:lbl,datasets:[{data:val,
+      backgroundColor:lbl.map((_,i)=>RP[i%RP.length]),
+      borderRadius:5, borderSkipped:false,
+      hoverBorderColor:'#e8187a', hoverBorderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,
+      animation:{duration:450,easing:'easeOutQuart'},
+      plugins:{legend:{display:false},tooltip:{...TTO,callbacks:{
+        title:c=>c[0].label,
+        label:c=>`  ${c.parsed.y} abstracts  ·  ${((c.parsed.y/tot)*100).toFixed(1)}%`
+      }}},
+      scales:{
+        x:{grid:{display:false},ticks:{font:{size:11},color:'#555',maxRotation:30}},
+        y:{grid:{color:'rgba(26,45,90,0.06)'},ticks:{font:{size:11},color:'#888'}}
+      }
+    }
+  });
+}
+
+function mkLegend(id, labels, vals, colors, isT) {
+  const tot = vals.reduce((a,b)=>a+b,0);
+  document.getElementById(id).innerHTML = labels.map((l,i)=>{
+    const d = isT ? (TF[l]||l) : l;
+    const p = Math.round(vals[i]/tot*100);
+    const tip = isT ? (TT[l]||l) : l;
+    return `<span class="li" title="${tip}"><span class="ld" style="background:${colors[i]}"></span><span>${d.length>32?d.slice(0,32)+'…':d}</span><span class="lp">${p}%</span></span>`;
+  }).join('');
+}
+
+function mkCat(cats) {
+  const e = Object.entries(cats).sort((a,b)=>b[1]-a[1]);
+  const lbl = e.map(d=>d[0]), val = e.map(d=>d[1]);
+  const tot = val.reduce((a,b)=>a+b,0);
+  const col = PP.slice(0,lbl.length);
+  mkLegend('lC', lbl, val, col, false);
+  if (CH.c) CH.c.destroy();
+  CH.c = new Chart(document.getElementById('cC'), {
+    type:'doughnut',
+    data:{labels:lbl,datasets:[{data:val,backgroundColor:col,borderWidth:3,borderColor:'#fff',hoverOffset:12,hoverBorderColor:'#e8187a',hoverBorderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',
+      animation:{duration:550,easing:'easeOutCubic'},
+      plugins:{legend:{display:false},tooltip:{...TTO,callbacks:{
+        title:c=>c[0].label,
+        label:c=>`  ${c.parsed}  ·  ${((c.parsed/tot)*100).toFixed(1)}%`
+      }}}
+    }
+  });
+}
+
+function mkTheme(themes) {
+  // chart sorted by count (largest slice first)
+  const sorted = Object.entries(themes).sort((a,b)=>b[1]-a[1]);
+  const chartKeys = sorted.map(d=>d[0]), chartVal = sorted.map(d=>d[1]);
+  const tot = chartVal.reduce((a,b)=>a+b,0);
+  // assign a fixed color per theme key so legend & chart stay in sync
+  const themeColorMap = {};
+  chartKeys.forEach((k,i) => { themeColorMap[k] = RP[i % RP.length]; });
+  const chartCol = chartKeys.map(k => themeColorMap[k]);
+
+  // legend in T1→T8 order
+  const legendOrder = ["Theme 1","Theme 2","Theme 3","Theme 4","Theme 5","Theme 6","Theme 7","Theme 8"];
+  const legKeys = legendOrder.filter(k => themes[k] !== undefined);
+  const legVal  = legKeys.map(k => themes[k]);
+  const legCol  = legKeys.map(k => themeColorMap[k]);
+  mkLegend('lT', legKeys, legVal, legCol, true);
+
+  if (CH.t) CH.t.destroy();
+  CH.t = new Chart(document.getElementById('cT'), {
+    type:'doughnut',
+    data:{labels:chartKeys.map(k=>TT[k]||k),datasets:[{data:chartVal,backgroundColor:chartCol,borderWidth:3,borderColor:'#fff',hoverOffset:12,hoverBorderColor:'#e8187a',hoverBorderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',
+      animation:{duration:550,easing:'easeOutCubic'},
+      plugins:{legend:{display:false},tooltip:{...TTO,callbacks:{
+        title:c=>c[0].label,
+        label:c=>`  ${c.parsed}  ·  ${((c.parsed/tot)*100).toFixed(1)}%`
+      }}}
+    }
+  });
+}
+
+function go() {
+  const reg = document.getElementById('fr').value;
+  const cat = document.getElementById('fc').value;
+  let nations, cats, themes, regions, total;
+
+  if (reg !== 'All' && D.reg[reg]) {
+    const d = D.reg[reg];
+    nations=d.n; cats=d.c; themes=d.t;
+    regions={[reg]:Object.values(d.n).reduce((a,b)=>a+b,0)};
+    total=Object.values(d.n).reduce((a,b)=>a+b,0);
+  } else {
+    nations=D.nations; cats=D.cats; themes=D.themes; regions=D.regions; total=426;
+  }
+
+  if (cat !== 'All') {
+    const ct = cats[cat]||0;
+    const rt = ct/Object.values(cats).reduce((a,b)=>a+b,0);
+    mkNation(Object.fromEntries(Object.entries(nations).map(([k,v])=>[k,Math.round(v*rt)])));
+    mkRegion(Object.fromEntries(Object.entries(regions).map(([k,v])=>[k,Math.round(v*rt)])));
+    mkCat({[cat]:ct});
+    mkTheme(Object.fromEntries(Object.entries(themes).map(([k,v])=>[k,Math.round(v*rt)])));
+    total=ct;
+  } else {
+    mkNation(nations); mkRegion(regions); mkCat(cats); mkTheme(themes);
+  }
+
+  document.getElementById('kn1').textContent=total;
+  document.getElementById('kn2').textContent=reg!=='All'&&D.reg[reg]?Object.keys(D.reg[reg].n).length:69;
+  document.getElementById('kn3').textContent=reg!=='All'?1:15;
+}
+
+function reset() {
+  document.getElementById('fr').value='All';
+  document.getElementById('fc').value='All';
+  go();
+}
+
+window.addEventListener('DOMContentLoaded',()=>{ mkNation(D.nations); mkRegion(D.regions); mkCat(D.cats); mkTheme(D.themes); });
+</script>
+</body>
+</html>
